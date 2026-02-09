@@ -65,7 +65,6 @@ export default function Timeline() {
   const milestones = useStore((s) => s.milestones);
   const toggleMilestone = useStore((s) => s.toggleMilestone);
   const addMilestone = useStore((s) => s.addMilestone);
-  const tasks = useStore((s) => s.tasks);
   const properties = useStore((s) => s.properties);
 
   const [showForm, setShowForm] = useState(false);
