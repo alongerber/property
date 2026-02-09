@@ -604,15 +604,45 @@ function AppraiserInsights() {
 function ChatInterface({ persona }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const properties = useStore((s) => s.properties);
+  const equitySources = useStore((s) => s.equitySources);
+  const mortgageYears = useStore((s) => s.mortgageYears);
+  const mortgageRate = useStore((s) => s.mortgageRate);
+  const netIncome = useStore((s) => s.netIncome);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  function handleSend(e) {
+  function buildSystemPrompt() {
+    const roles = {
+      lawyer: 'אתה עורך דין מומחה לנדל"ן בישראל. תפקידך לייעץ בנושאי חריגות בנייה, היתרים, טאבו, שעבודים, ובדיקות משפטיות לפני רכישת דירה. ענה בעברית, בקצרה ולעניין.',
+      mortgage: 'אתה יועץ משכנתאות מומחה בישראל. תפקידך לייעץ בנושאי תמהיל משכנתא, ריביות, כושר החזר, ומסלולים. ענה בעברית, בקצרה ולעניין.',
+      appraiser: 'אתה שמאי מקרקעין ואנליסט נדל"ן בישראל. תפקידך לנתח שווי שוק, מגמות אזוריות, ופוטנציאל השבחה. ענה בעברית, בקצרה ולעניין.',
+    };
+
+    const context = {
+      properties: properties.map((p) => ({
+        name: p.name, street: p.street, city: p.city, rooms: p.rooms,
+        sqm_built: p.sqm_built, sqm_garden: p.sqm_garden, floor: p.floor,
+        price: p.price, status: p.status, condition: p.condition,
+        highlights: p.highlights, risks: p.risks, features: p.features,
+        parking_spots: p.parking_spots, has_mamad: p.has_mamad,
+        renovation_estimate: p.renovation_estimate,
+      })),
+      equity: equitySources.map((s) => ({ label: s.label, amount: s.current_estimate })),
+      mortgage: { years: mortgageYears, rate: mortgageRate },
+      income: netIncome,
+    };
+
+    return `${roles[persona.id]}\n\nנתוני המשתמש:\n${JSON.stringify(context, null, 2)}`;
+  }
+
+  async function handleSend(e) {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
 
     const userMessage = {
       id: crypto.randomUUID(),
@@ -621,15 +651,50 @@ function ChatInterface({ persona }) {
       timestamp: new Date().toISOString(),
     };
 
-    const aiMessage = {
-      id: crypto.randomUUID(),
-      role: 'ai',
-      text: 'שירות AI יהיה זמין בקרוב',
-      timestamp: new Date().toISOString(),
-    };
-
-    setMessages((prev) => [...prev, userMessage, aiMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput('');
+    setIsLoading(true);
+
+    try {
+      const apiMessages = [...messages, userMessage].map((m) => ({
+        role: m.role === 'ai' ? 'assistant' : 'user',
+        content: m.text,
+      }));
+
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: apiMessages,
+          system: buildSystemPrompt(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'שגיאה בשרת');
+      }
+
+      const aiMessage = {
+        id: crypto.randomUUID(),
+        role: 'ai',
+        text: data.text,
+        timestamp: new Date().toISOString(),
+      };
+
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (err) {
+      const errorMessage = {
+        id: crypto.randomUUID(),
+        role: 'ai',
+        text: `שגיאה: ${err.message}`,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -659,6 +724,21 @@ function ChatInterface({ persona }) {
               שלחו הודעה כדי להתחיל שיחה
             </span>
           </div>
+        )}
+
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex justify-end"
+          >
+            <div
+              className="rounded-lg px-3 py-2"
+              style={{ backgroundColor: '#33415560', border: '1px solid #33415580' }}
+            >
+              <span className="text-sm animate-pulse" style={{ color: '#94A3B8' }}>חושב...</span>
+            </div>
+          </motion.div>
         )}
 
         {messages.map((msg) => (
@@ -713,7 +793,8 @@ function ChatInterface({ persona }) {
         />
         <button
           type="submit"
-          className="rounded-lg p-2.5 cursor-pointer transition-colors shrink-0"
+          disabled={isLoading}
+          className="rounded-lg p-2.5 cursor-pointer transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ backgroundColor: persona.color, color: '#FFFFFF' }}
           onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
           onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
