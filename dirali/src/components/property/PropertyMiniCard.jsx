@@ -1,52 +1,82 @@
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { Home, Maximize, Trees, Car } from 'lucide-react';
+import useStore from '../../store/useStore';
 import { calcTax, calcMortgage, formatCurrency, getIncomeRatio, getIncomeRatioColor } from '../../utils/calculations';
 import StatusPill from './StatusPill';
 
-export default function PropertyMiniCard({
-  property,
-  mortgageYears,
-  mortgageRate,
-  totalEquity,
-  netIncome,
-}) {
+export default function PropertyMiniCard({ property }) {
+  const navigate = useNavigate();
+  const { totalEquity, mortgageYears, mortgageRate, netIncome } = useStore((s) => ({
+    totalEquity: s.totalEquity(),
+    mortgageYears: s.mortgageYears,
+    mortgageRate: s.mortgageRate,
+    netIncome: s.netIncome,
+  }));
+
   const {
+    id,
     name,
     street,
     price,
     color = '#3B82F6',
-    emoji,
-    images = [],
     rooms,
-    sqm,
-    garden_sqm,
-    parking,
+    sqm_built,
+    sqm_garden,
+    parking_spots,
     status,
+    features,
+    images = [],
   } = property;
 
   const primaryImage = images?.[0];
-  const tax = calcTax(price);
-  const mortgagePrincipal = Math.max(0, price + tax - totalEquity);
-  const monthlyPayment = calcMortgage(mortgagePrincipal, mortgageRate, mortgageYears);
-  const ratio = getIncomeRatio(monthlyPayment, netIncome);
+  const hasPrice = price != null && price > 0;
+
+  const tax = hasPrice ? calcTax(price) : 0;
+  const mortgagePrincipal = hasPrice ? Math.max(0, price + tax - totalEquity) : 0;
+  const monthlyPayment = hasPrice ? calcMortgage(mortgagePrincipal, mortgageRate, mortgageYears) : 0;
+  const ratio = hasPrice && netIncome > 0 ? getIncomeRatio(monthlyPayment, netIncome) : 0;
   const ratioColor = getIncomeRatioColor(ratio);
+
+  const statItems = [
+    rooms != null && { icon: Home, value: rooms, label: 'חדרים' },
+    sqm_built != null && { icon: Maximize, value: sqm_built, label: 'מ״ר' },
+    sqm_garden != null && sqm_garden > 0 && { icon: Trees, value: sqm_garden, label: 'גינה' },
+    parking_spots != null && parking_spots > 0 && { icon: Car, value: parking_spots, label: 'חניות' },
+  ].filter(Boolean);
 
   return (
     <motion.div
-      className="rounded-2xl p-4 cursor-pointer"
+      onClick={() => navigate(`/properties/${id}`)}
+      className="rounded-2xl cursor-pointer relative overflow-hidden"
       style={{
-        backgroundColor: '#1E293B',
-        border: `1px solid ${color}33`,
+        background: 'rgba(30,41,59,0.6)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        padding: 20,
+        border: `1px solid rgba(255,255,255,0.06)`,
+        backgroundImage: `linear-gradient(135deg, ${color}08 0%, transparent 60%)`,
       }}
-      whileHover={{ y: -2, boxShadow: `0 8px 24px ${color}15` }}
-      transition={{ duration: 0.2 }}
+      whileHover={{
+        y: -3,
+        boxShadow: `0 12px 32px ${color}20, 0 0 0 1px ${color}30`,
+      }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
       dir="rtl"
     >
-      {/* Top row: image/emoji + name + price */}
+      {/* Subtle gradient border glow on top edge */}
+      <div
+        className="absolute top-0 left-0 right-0 h-px"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${color}40, transparent)`,
+        }}
+      />
+
+      {/* Top row: image + name + price */}
       <div className="flex items-start gap-3 mb-3">
-        {/* Image or emoji fallback */}
         <div
           className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center"
-          style={{ backgroundColor: `${color}22` }}
+          style={{ backgroundColor: `${color}18` }}
         >
           {primaryImage ? (
             <img
@@ -55,9 +85,7 @@ export default function PropertyMiniCard({
               className="w-full h-full object-cover"
             />
           ) : (
-            <span className="text-xl">
-              {emoji || name?.charAt(0) || '?'}
-            </span>
+            <Home size={20} style={{ color }} />
           )}
         </div>
 
@@ -80,81 +108,78 @@ export default function PropertyMiniCard({
             className="text-sm font-mono font-semibold mt-1"
             style={{ color }}
           >
-            {formatCurrency(price)}
+            {hasPrice ? formatCurrency(price) : '—'}
           </p>
         </div>
       </div>
 
       {/* Stats row */}
-      <div
-        className="flex items-center gap-2 text-xs flex-wrap mb-3"
-        style={{ color: '#94A3B8' }}
-      >
-        {rooms != null && (
-          <span className="flex items-center gap-1">
-            <span style={{ color: '#64748B' }}>{rooms}</span> \u05D7\u05D3\u05E8\u05D9\u05DD
-          </span>
-        )}
-        {sqm != null && (
-          <>
-            <span style={{ color: '#334155' }}>|</span>
-            <span className="flex items-center gap-1">
-              <span style={{ color: '#64748B' }}>{sqm}</span> \u05DE\u0022\u05E8
-            </span>
-          </>
-        )}
-        {garden_sqm != null && garden_sqm > 0 && (
-          <>
-            <span style={{ color: '#334155' }}>|</span>
-            <span className="flex items-center gap-1">
-              {'🌱'} <span style={{ color: '#64748B' }}>{garden_sqm}</span>
-            </span>
-          </>
-        )}
-        {parking != null && parking > 0 && (
-          <>
-            <span style={{ color: '#334155' }}>|</span>
-            <span className="flex items-center gap-1">
-              {'🅿️'} <span style={{ color: '#64748B' }}>{parking}</span>
-            </span>
-          </>
-        )}
-      </div>
+      {statItems.length > 0 && (
+        <div
+          className="flex items-center gap-2 text-xs flex-wrap mb-3"
+          style={{ color: '#94A3B8' }}
+        >
+          {statItems.map((item, i) => {
+            const Icon = item.icon;
+            return (
+              <span key={i} className="flex items-center gap-1.5">
+                {i > 0 && (
+                  <span
+                    className="mr-1"
+                    style={{ color: '#475569', fontSize: 6 }}
+                  >
+                    {'\u00B7'}
+                  </span>
+                )}
+                <Icon size={13} style={{ color: '#64748B' }} />
+                <span style={{ color: '#CBD5E1' }}>{item.value}</span>
+                <span>{item.label}</span>
+              </span>
+            );
+          })}
+        </div>
+      )}
 
       {/* Status pill */}
-      <div className="mb-3">
-        <StatusPill status={status} size="sm" />
-      </div>
-
-      {/* Monthly mortgage + income ratio */}
-      <div
-        className="flex items-center justify-between pt-3"
-        style={{ borderTop: '1px solid #334155' }}
-      >
-        <div>
-          <p className="text-xs" style={{ color: '#64748B' }}>
-            \u05D4\u05D7\u05D6\u05E8 \u05D7\u05D5\u05D3\u05E9\u05D9
-          </p>
-          <p
-            className="text-sm font-mono font-semibold"
-            style={{ color: '#E2E8F0' }}
-          >
-            {formatCurrency(Math.round(monthlyPayment))}
-          </p>
+      {status && (
+        <div className="mb-3">
+          <StatusPill status={status} size="sm" />
         </div>
+      )}
 
-        <div className="text-left">
-          <p className="text-xs" style={{ color: '#64748B' }}>
-            \u05D0\u05D7\u05D5\u05D6 \u05DE\u05D4\u05DB\u05E0\u05E1\u05D4
-          </p>
-          <p
-            className="text-sm font-mono font-bold"
-            style={{ color: ratioColor }}
-          >
-            {ratio.toFixed(1)}%
-          </p>
+      {/* Monthly mortgage + income ratio — only when price exists */}
+      {hasPrice && (
+        <div
+          className="flex items-center justify-between pt-3"
+          style={{ borderTop: '1px solid rgba(51,65,85,0.6)' }}
+        >
+          <div>
+            <p className="text-xs" style={{ color: '#64748B' }}>
+              החזר חודשי
+            </p>
+            <p
+              className="text-sm font-mono font-semibold"
+              style={{ color: '#E2E8F0' }}
+            >
+              {isNaN(monthlyPayment)
+                ? '—'
+                : formatCurrency(Math.round(monthlyPayment))}
+            </p>
+          </div>
+
+          <div className="text-left">
+            <p className="text-xs" style={{ color: '#64748B' }}>
+              אחוז מהכנסה
+            </p>
+            <p
+              className="text-sm font-mono font-bold"
+              style={{ color: ratioColor }}
+            >
+              {isNaN(ratio) ? '—' : `${ratio.toFixed(1)}%`}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </motion.div>
   );
 }

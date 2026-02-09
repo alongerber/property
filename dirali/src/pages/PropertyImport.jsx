@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useDropzone } from 'react-dropzone';
 import {
   Sparkles,
   Wand2,
@@ -10,6 +11,9 @@ import {
   ArrowLeft,
   Building2,
   Edit3,
+  X,
+  Upload,
+  ImageIcon,
 } from 'lucide-react';
 import useStore from '../store/useStore';
 import { formatCurrency } from '../utils/calculations';
@@ -98,6 +102,51 @@ export default function PropertyImport() {
   const [error, setError] = useState('');
   const [parsed, setParsed] = useState(null);
   const [saved, setSaved] = useState(false);
+  const [images, setImages] = useState([]);
+
+  // ─── Image Handling ─────────────────────────────────────────
+  const onDrop = useCallback((acceptedFiles) => {
+    acceptedFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImages((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), dataUrl: reader.result, name: file.name },
+        ]);
+      };
+      reader.readAsDataURL(file);
+    });
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { 'image/*': [] },
+    multiple: true,
+  });
+
+  function handlePaste(e) {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        const reader = new FileReader();
+        reader.onload = () => {
+          setImages((prev) => [
+            ...prev,
+            { id: crypto.randomUUID(), dataUrl: reader.result, name: file.name || 'pasted-image.png' },
+          ]);
+        };
+        reader.readAsDataURL(file);
+        break;
+      }
+    }
+  }
+
+  function removeImage(id) {
+    setImages((prev) => prev.filter((img) => img.id !== id));
+  }
 
   // ─── API Call ───────────────────────────────────────────────
   async function handleImport() {
@@ -266,6 +315,7 @@ export default function PropertyImport() {
                 <textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}
+                  onPaste={handlePaste}
                   placeholder="הדביקו כאן טקסט מודעה מ-Yad2, פייסבוק, או כל מקור אחר..."
                   rows={8}
                   className="w-full text-sm rounded-lg px-4 py-3 resize-none transition-colors"
@@ -281,6 +331,64 @@ export default function PropertyImport() {
                   onFocus={(e) => (e.target.style.borderColor = '#8B5CF6')}
                   onBlur={(e) => (e.target.style.borderColor = '#334155')}
                 />
+
+                {/* Drop Zone */}
+                <div
+                  {...getRootProps()}
+                  className="mt-3 rounded-lg p-4 text-center cursor-pointer transition-all"
+                  style={{
+                    border: `2px dashed ${isDragActive ? '#8B5CF6' : '#334155'}`,
+                    backgroundColor: isDragActive ? 'rgba(139, 92, 246, 0.08)' : 'rgba(15, 23, 42, 0.4)',
+                  }}
+                >
+                  <input {...getInputProps()} />
+                  <Upload size={20} style={{ color: isDragActive ? '#8B5CF6' : '#64748B', margin: '0 auto 8px' }} />
+                  <p className="text-sm" style={{ color: isDragActive ? '#A78BFA' : '#64748B' }}>
+                    גררו תמונות לכאן או לחצו לבחירה
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: '#475569' }}>
+                    ניתן גם להדביק תמונות עם Ctrl+V בשדה הטקסט
+                  </p>
+                </div>
+
+                {/* Image Thumbnails */}
+                {images.length > 0 && (
+                  <div
+                    className="mt-3 flex gap-2 overflow-x-auto pb-2"
+                    style={{ scrollbarWidth: 'thin', scrollbarColor: '#334155 transparent' }}
+                  >
+                    {images.map((img) => (
+                      <div
+                        key={img.id}
+                        className="relative shrink-0 rounded-lg overflow-hidden group"
+                        style={{
+                          width: 80,
+                          height: 80,
+                          border: '1px solid #334155',
+                        }}
+                      >
+                        <img
+                          src={img.dataUrl}
+                          alt={img.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeImage(img.id);
+                          }}
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                          style={{
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            border: 'none',
+                          }}
+                        >
+                          <X size={12} style={{ color: '#FFFFFF' }} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </motion.div>
 

@@ -21,6 +21,13 @@ import {
   Accessibility,
   User,
   Send,
+  MapPin,
+  FileText,
+  CheckCircle2,
+  StickyNote,
+  MessageSquare,
+  Mail,
+  HandCoins,
 } from 'lucide-react';
 import useStore from '../store/useStore';
 import { PIPELINE_STATUSES, ACTIVITY_TYPES } from '../utils/constants';
@@ -35,6 +42,8 @@ import {
 } from '../utils/calculations';
 import StatusPill from '../components/property/StatusPill';
 import ConfirmDialog from '../components/shared/ConfirmDialog';
+
+const ICON_MAP = { Phone, MapPin, FileText, CheckCircle2, StickyNote, MessageSquare, Mail, HandCoins };
 
 // ---------------------------------------------------------------------------
 // Editable List component for Highlights / Risks
@@ -303,7 +312,7 @@ export default function PropertyDetail() {
 
   // ===========================================================================
   return (
-    <div className="pb-24" dir="rtl">
+    <div className="max-w-4xl mx-auto px-4 py-6 pb-24" dir="rtl">
       {/* ===== HEADER with gradient ===== */}
       <div
         className="relative px-4 pt-6 pb-8"
@@ -578,7 +587,7 @@ export default function PropertyDetail() {
         </div>
 
         {/* ===== FINANCIAL SUMMARY ===== */}
-        {financial && (
+        {financial && financial.price > 0 && (
           <div
             className="rounded-xl p-5"
             style={{ backgroundColor: '#0F172A', border: '1px solid #334155' }}
@@ -796,24 +805,41 @@ export default function PropertyDetail() {
             className="rounded-xl p-4 mb-4"
             style={{ backgroundColor: '#1E293B' }}
           >
+            {/* Activity type selector buttons */}
+            <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1 scrollbar-hide">
+              {ACTIVITY_TYPES.map((t) => {
+                const IconComp = ICON_MAP[t.icon] || StickyNote;
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => setActivityType(t.id)}
+                    className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-colors flex-shrink-0 cursor-pointer"
+                    style={{
+                      backgroundColor:
+                        activityType === t.id
+                          ? 'rgba(59, 130, 246, 0.2)'
+                          : 'transparent',
+                      border:
+                        activityType === t.id
+                          ? '1px solid rgba(59, 130, 246, 0.4)'
+                          : '1px solid transparent',
+                    }}
+                  >
+                    <IconComp size={18} style={{ color: activityType === t.id ? '#3B82F6' : '#94A3B8' }} />
+                    <span
+                      className="text-[10px]"
+                      style={{
+                        color: activityType === t.id ? '#3B82F6' : '#94A3B8',
+                      }}
+                    >
+                      {t.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
             <div className="flex items-center gap-2 mb-3">
-              <select
-                value={activityType}
-                onChange={(e) => setActivityType(e.target.value)}
-                className="text-sm rounded-lg px-2 py-1.5 cursor-pointer"
-                style={{
-                  backgroundColor: '#0F172A',
-                  border: '1px solid #334155',
-                  color: '#E2E8F0',
-                  outline: 'none',
-                }}
-              >
-                {ACTIVITY_TYPES.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.icon} {t.label}
-                  </option>
-                ))}
-              </select>
               <input
                 value={activityTitle}
                 onChange={(e) => setActivityTitle(e.target.value)}
@@ -879,8 +905,11 @@ export default function PropertyDetail() {
                   >
                     <div className="flex items-start gap-3">
                       {/* Type icon */}
-                      <span className="text-lg flex-shrink-0 mt-0.5">
-                        {typeConfig?.icon || '📝'}
+                      <span className="flex-shrink-0 mt-0.5" style={{ color: '#94A3B8' }}>
+                        {(() => {
+                          const IconComp = ICON_MAP[typeConfig?.icon] || StickyNote;
+                          return <IconComp size={18} />;
+                        })()}
                       </span>
 
                       <div className="flex-1 min-w-0">
