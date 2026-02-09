@@ -17,6 +17,7 @@ import {
   MessageCircle,
   Mail,
   HandCoins,
+  Sparkles,
 } from 'lucide-react';
 import useStore from '../store/useStore';
 import { formatCurrency, relativeTime } from '../utils/calculations';
@@ -298,7 +299,32 @@ export default function Dashboard() {
             <PropertyMiniCard key={property.id} property={property} />
           ))}
 
-          {/* Add new property card */}
+          {/* AI Import card */}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate('/properties/import')}
+            className="rounded-xl border flex flex-col items-center justify-center gap-3 py-10 cursor-pointer transition-all"
+            style={{
+              borderColor: '#8B5CF640',
+              background: 'linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(59,130,246,0.08) 100%)',
+              color: '#A78BFA',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#8B5CF6';
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(139,92,246,0.15) 0%, rgba(59,130,246,0.15) 100%)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = '#8B5CF640';
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(59,130,246,0.08) 100%)';
+            }}
+          >
+            <Sparkles size={28} />
+            <span className="text-sm font-medium">ייבוא חכם עם AI</span>
+            <span className="text-xs" style={{ color: '#94A3B8' }}>הדביקו טקסט מודעה</span>
+          </motion.button>
+
+          {/* Manual add card */}
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -319,7 +345,7 @@ export default function Dashboard() {
             }}
           >
             <Plus size={28} />
-            <span className="text-sm font-medium">+ הוסף דירה חדשה</span>
+            <span className="text-sm font-medium">+ הוסף ידנית</span>
           </motion.button>
         </div>
       </motion.div>

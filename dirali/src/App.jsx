@@ -15,6 +15,7 @@ import Tasks from './pages/Tasks';
 import AiAdvisors from './pages/AiAdvisors';
 import Timeline from './pages/Timeline';
 import Scenarios from './pages/Scenarios';
+import PropertyImport from './pages/PropertyImport';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/properties" element={<Properties />} />
             <Route path="/properties/new" element={<PropertyForm />} />
+            <Route path="/properties/import" element={<PropertyImport />} />
             <Route path="/properties/:id" element={<PropertyDetail />} />
             <Route path="/properties/:id/edit" element={<PropertyForm />} />
             <Route path="/equity" element={<EquityManager />} />

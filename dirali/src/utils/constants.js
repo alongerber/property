@@ -9,14 +9,14 @@ export const PIPELINE_STATUSES = [
 ];
 
 export const ACTIVITY_TYPES = [
-  { id: 'call', label: 'שיחה', icon: '📞' },
-  { id: 'visit', label: 'סיור', icon: '🚶' },
-  { id: 'document', label: 'מסמך', icon: '📄' },
-  { id: 'decision', label: 'החלטה', icon: '✅' },
-  { id: 'note', label: 'הערה', icon: '📝' },
-  { id: 'whatsapp', label: 'וואטסאפ', icon: '💬' },
-  { id: 'email', label: 'אימייל', icon: '📧' },
-  { id: 'negotiation', label: 'מו״מ', icon: '💰' },
+  { id: 'call', label: 'שיחה', icon: 'Phone' },
+  { id: 'visit', label: 'סיור', icon: 'MapPin' },
+  { id: 'document', label: 'מסמך', icon: 'FileText' },
+  { id: 'decision', label: 'החלטה', icon: 'CheckCircle2' },
+  { id: 'note', label: 'הערה', icon: 'StickyNote' },
+  { id: 'whatsapp', label: 'וואטסאפ', icon: 'MessageSquare' },
+  { id: 'email', label: 'אימייל', icon: 'Mail' },
+  { id: 'negotiation', label: 'מו״מ', icon: 'HandCoins' },
 ];
 
 export const AI_PERSONAS = [

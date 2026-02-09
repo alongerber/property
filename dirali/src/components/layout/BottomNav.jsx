@@ -22,8 +22,10 @@ export default function BottomNav() {
     <nav
       className="fixed bottom-0 inset-x-0 z-50 flex items-center justify-around"
       style={{
-        backgroundColor: '#0F172A',
-        borderTop: '1px solid #334155',
+        backgroundColor: 'rgba(15, 23, 42, 0.85)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderTop: '1px solid rgba(51, 65, 85, 0.6)',
         height: 56,
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
@@ -41,13 +43,25 @@ export default function BottomNav() {
         >
           {({ isActive }) => (
             <>
-              <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
+              <Icon size={isActive ? 22 : 20} strokeWidth={isActive ? 2.5 : 1.8} />
               <span
                 className="text-[10px] leading-tight font-medium"
                 style={{ color: isActive ? '#3B82F6' : '#64748B' }}
               >
                 {label}
               </span>
+              {isActive && (
+                <div
+                  style={{
+                    width: 4,
+                    height: 4,
+                    borderRadius: '50%',
+                    backgroundColor: '#3B82F6',
+                    boxShadow: '0 0 6px 2px rgba(59, 130, 246, 0.5)',
+                    marginTop: 1,
+                  }}
+                />
+              )}
             </>
           )}
         </NavLink>

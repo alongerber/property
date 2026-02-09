@@ -11,11 +11,13 @@ import {
   ChevronDown,
   ChevronUp,
   Phone,
+  MapPin,
   Footprints,
   FileText,
   CheckSquare,
   StickyNote,
   MessageCircle,
+  MessageSquare,
   Mail,
   HandCoins,
   Pencil,
@@ -23,9 +25,13 @@ import {
   Filter,
   Calendar,
 } from 'lucide-react';
+
 import useStore from '../store/useStore';
 import { relativeTime } from '../utils/calculations';
 import { ACTIVITY_TYPES } from '../utils/constants';
+
+// ─── Lucide icon name → component mapping (for ACTIVITY_TYPES.icon strings) ──
+const ICON_NAME_MAP = { Phone, MapPin, FileText, CheckCircle2, StickyNote, MessageSquare, Mail, HandCoins };
 
 // ─── Animation Variants ───────────────────────────────────────
 const containerVariants = {
@@ -653,7 +659,8 @@ function ActivityFeedView() {
                   border: `1px solid ${isSelected ? color + '60' : '#334155'}`,
                 }}
               >
-                {type.icon} {type.label}
+                {(() => { const IC = ICON_NAME_MAP[type.icon]; return IC ? <IC size={14} style={{ display: 'inline', verticalAlign: 'middle', marginLeft: 4 }} /> : null; })()}
+                {type.label}
               </button>
             );
           })}
