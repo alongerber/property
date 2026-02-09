@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Phone, MapPin, FileText, CheckCircle2, StickyNote, MessageSquare, Mail, HandCoins } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useStore from '../../store/useStore';
 import { ACTIVITY_TYPES } from '../../utils/constants';
+
+const ICON_MAP = { Phone, MapPin, FileText, CheckCircle2, StickyNote, MessageSquare, Mail, HandCoins };
 
 export default function QuickAddFAB() {
   const [open, setOpen] = useState(false);
@@ -102,9 +104,11 @@ export default function QuickAddFAB() {
             className="fixed z-[56] inset-x-3 p-4"
             style={{
               bottom: 80,
-              backgroundColor: '#1E293B',
+              backgroundColor: 'rgba(30, 41, 59, 0.85)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
               borderRadius: 16,
-              border: '1px solid #334155',
+              border: '1px solid rgba(51, 65, 85, 0.6)',
               boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
             }}
           >
@@ -143,7 +147,7 @@ export default function QuickAddFAB() {
                         : '1px solid transparent',
                   }}
                 >
-                  <span className="text-base leading-none">{type.icon}</span>
+                  {(() => { const IconComp = ICON_MAP[type.icon]; return IconComp ? <IconComp size={18} /> : null; })()}
                   <span
                     className="text-[10px]"
                     style={{
