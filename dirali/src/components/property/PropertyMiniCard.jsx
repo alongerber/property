@@ -7,11 +7,12 @@ import StatusPill from './StatusPill';
 
 export default function PropertyMiniCard({ property }) {
   const navigate = useNavigate();
-  const { totalEquity, mortgageYears, mortgageRate, netIncome } = useStore((s) => ({
+  const { totalEquity, mortgageYears, mortgageRate, netIncome, isFirstProperty } = useStore((s) => ({
     totalEquity: s.totalEquity(),
     mortgageYears: s.mortgageYears,
     mortgageRate: s.mortgageRate,
     netIncome: s.netIncome,
+    isFirstProperty: s.isFirstProperty,
   }));
 
   const {
@@ -32,7 +33,7 @@ export default function PropertyMiniCard({ property }) {
   const primaryImage = images?.[0];
   const hasPrice = price != null && price > 0;
 
-  const tax = hasPrice ? calcTax(price) : 0;
+  const tax = hasPrice ? calcTax(price, isFirstProperty) : 0;
   const mortgagePrincipal = hasPrice ? Math.max(0, price + tax - totalEquity) : 0;
   const monthlyPayment = hasPrice ? calcMortgage(mortgagePrincipal, mortgageRate, mortgageYears) : 0;
   const ratio = hasPrice && netIncome > 0 ? getIncomeRatio(monthlyPayment, netIncome) : 0;

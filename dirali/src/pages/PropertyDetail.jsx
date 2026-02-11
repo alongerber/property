@@ -187,6 +187,7 @@ export default function PropertyDetail() {
   const mortgageYears = useStore((s) => s.mortgageYears);
   const mortgageRate = useStore((s) => s.mortgageRate);
   const netIncome = useStore((s) => s.netIncome);
+  const isFirstProperty = useStore((s) => s.isFirstProperty);
 
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -217,7 +218,7 @@ export default function PropertyDetail() {
   const financial = useMemo(() => {
     if (!property) return null;
     const price = property.price || 0;
-    const tax = calcTax(price);
+    const tax = calcTax(price, isFirstProperty);
     const renovation = property.renovation_estimate || 0;
     const totalCost = price + tax + renovation;
     const equity = totalEquity();

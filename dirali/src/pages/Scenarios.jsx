@@ -22,6 +22,7 @@ export default function Scenarios() {
   const mortgageYears = useStore((s) => s.mortgageYears);
   const mortgageRate = useStore((s) => s.mortgageRate);
   const netIncome = useStore((s) => s.netIncome);
+  const isFirstProperty = useStore((s) => s.isFirstProperty);
 
   const activeProps = useMemo(
     () => properties.filter((p) => p.status !== 'dropped'),
@@ -106,7 +107,7 @@ export default function Scenarios() {
     return activeProps.map((p, i) => {
       const priceOverride = scenario.priceOverrides?.[p.id];
       const price = priceOverride !== undefined ? priceOverride : p.price;
-      const tax = calcTax(price);
+      const tax = calcTax(price, isFirstProperty);
       const renovation = p.renovation_estimate || 0;
       const totalCost = price + tax + renovation;
       const mortgageAmount = Math.max(0, totalCost - scenarioEquity);

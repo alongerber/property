@@ -22,18 +22,18 @@ const SIMPLE_CRITERIA = [
   { key: 'totalCost', label: 'עלות כוללת', format: (v) => formatCurrency(v), lowerBetter: true, computed: true },
 ];
 
-function getPropertyValue(property, criterion) {
-  if (criterion.key === 'tax') return calcTax(property.price);
+function getPropertyValue(property, criterion, isFirstProperty) {
+  if (criterion.key === 'tax') return calcTax(property.price, isFirstProperty);
   if (criterion.key === 'totalCost') {
-    return property.price + (property.renovation_estimate || 0) + calcTax(property.price);
+    return property.price + (property.renovation_estimate || 0) + calcTax(property.price, isFirstProperty);
   }
   return property[criterion.key];
 }
 
-function findWinner(props, criterion) {
+function findWinner(props, criterion, isFirstProperty) {
   if (props.length < 2) return null;
   const values = props.map((p) => {
-    const val = getPropertyValue(p, criterion);
+    const val = getPropertyValue(p, criterion, isFirstProperty);
     return typeof val === 'number' ? val : (val ? 1 : 0);
   });
 
@@ -57,6 +57,7 @@ export default function Compare() {
   const setDecisionScore = useStore((s) => s.setDecisionScore);
   const decisionWeights = useStore((s) => s.decisionWeights);
   const setWeight = useStore((s) => s.setWeight);
+  const isFirstProperty = useStore((s) => s.isFirstProperty);
 
   const activeProps = useMemo(
     () => properties.filter((p) => p.status !== 'dropped'),
@@ -149,7 +150,7 @@ function SimpleComparison({ properties }) {
     const counts = {};
     properties.forEach((p) => { counts[p.id] = 0; });
     SIMPLE_CRITERIA.forEach((c) => {
-      const winnerId = findWinner(properties, c);
+      const winnerId = findWinner(properties, c, isFirstProperty);
       if (winnerId) counts[winnerId] = (counts[winnerId] || 0) + 1;
     });
     return counts;
@@ -188,7 +189,7 @@ function SimpleComparison({ properties }) {
 
           <tbody>
             {SIMPLE_CRITERIA.map((criterion, rowIdx) => {
-              const winnerId = findWinner(properties, criterion);
+              const winnerId = findWinner(properties, criterion, isFirstProperty);
               return (
                 <tr
                   key={criterion.key}
@@ -207,7 +208,7 @@ function SimpleComparison({ properties }) {
                     {criterion.label}
                   </td>
                   {properties.map((p) => {
-                    const val = getPropertyValue(p, criterion);
+                    const val = getPropertyValue(p, criterion, isFirstProperty);
                     const isWinner = winnerId === p.id;
                     return (
                       <td
