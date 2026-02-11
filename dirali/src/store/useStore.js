@@ -119,9 +119,49 @@ const useStore = create(
       setMortgageYears: (y) => set({ mortgageYears: y }),
       setMortgageRate: (r) => set({ mortgageRate: r }),
 
-      // Income
+      // Income & personal
       netIncome: 14556,
       setNetIncome: (n) => set({ netIncome: n }),
+      isFirstProperty: false,  // Alon owns half of Dukhifat
+      setIsFirstProperty: (v) => set({ isFirstProperty: v }),
+
+      // Data export/import
+      exportData: () => {
+        const state = get();
+        return {
+          properties: state.properties,
+          equitySources: state.equitySources,
+          tasks: state.tasks,
+          activities: state.activities,
+          mortgageYears: state.mortgageYears,
+          mortgageRate: state.mortgageRate,
+          netIncome: state.netIncome,
+          isFirstProperty: state.isFirstProperty,
+          decisionScores: state.decisionScores,
+          decisionWeights: state.decisionWeights,
+          scenarios: state.scenarios,
+          milestones: state.milestones,
+          _exportedAt: new Date().toISOString(),
+        };
+      },
+      importData: (data) => {
+        if (!data || !data.properties) return false;
+        set({
+          properties: data.properties || [],
+          equitySources: data.equitySources || get().equitySources,
+          tasks: data.tasks || [],
+          activities: data.activities || [],
+          mortgageYears: data.mortgageYears ?? 25,
+          mortgageRate: data.mortgageRate ?? 4.5,
+          netIncome: data.netIncome ?? 14556,
+          isFirstProperty: data.isFirstProperty ?? false,
+          decisionScores: data.decisionScores || [],
+          decisionWeights: data.decisionWeights || {},
+          scenarios: data.scenarios || [],
+          milestones: data.milestones || get().milestones,
+        });
+        return true;
+      },
 
       // Decision scores
       decisionScores: [],

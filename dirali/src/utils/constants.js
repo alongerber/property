@@ -17,6 +17,7 @@ export const ACTIVITY_TYPES = [
   { id: 'whatsapp', label: 'וואטסאפ', icon: 'MessageSquare' },
   { id: 'email', label: 'אימייל', icon: 'Mail' },
   { id: 'negotiation', label: 'מו״מ', icon: 'HandCoins' },
+  { id: 'legal', label: 'משפטי', icon: 'Scale' },
 ];
 
 export const AI_PERSONAS = [

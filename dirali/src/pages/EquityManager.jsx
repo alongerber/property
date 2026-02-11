@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Wallet, Lock, Unlock, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Wallet, Lock, Unlock, TrendingUp, AlertTriangle, ShieldAlert } from 'lucide-react';
 import useStore from '../store/useStore';
 import { calcTax, calcMortgage, formatCurrency, getIncomeRatio, getIncomeRatioColor } from '../utils/calculations';
 import SliderInput from '../components/shared/SliderInput';
@@ -16,6 +16,7 @@ export default function EquityManager() {
   const mortgageYears = useStore((s) => s.mortgageYears);
   const mortgageRate = useStore((s) => s.mortgageRate);
   const netIncome = useStore((s) => s.netIncome);
+  const isFirstProperty = useStore((s) => s.isFirstProperty);
 
   const total = totalEquity();
 
@@ -35,7 +36,7 @@ export default function EquityManager() {
 
   const impactData = useMemo(() => {
     return activeProperties.map((p) => {
-      const tax = calcTax(p.price);
+      const tax = calcTax(p.price, isFirstProperty);
       const renovation = p.renovation_estimate || 0;
       const totalCost = p.price + tax + renovation;
       const mortgageAmount = Math.max(0, totalCost - total);
@@ -43,9 +44,11 @@ export default function EquityManager() {
         ? calcMortgage(mortgageAmount, mortgageRate, mortgageYears)
         : 0;
       const ratio = netIncome > 0 ? getIncomeRatio(monthly, netIncome) : 0;
-      return { ...p, tax, renovation, totalCost, mortgageAmount, monthly, ratio };
+      const ltv = p.price > 0 ? (mortgageAmount / p.price) * 100 : 0;
+      const maxLtv = isFirstProperty ? 75 : 50;
+      return { ...p, tax, renovation, totalCost, mortgageAmount, monthly, ratio, ltv, maxLtv };
     });
-  }, [activeProperties, total, mortgageRate, mortgageYears, netIncome]);
+  }, [activeProperties, total, mortgageRate, mortgageYears, netIncome, isFirstProperty]);
 
   const confirmedCount = equitySources.filter((s) => s.is_confirmed).length;
 
@@ -271,12 +274,29 @@ export default function EquityManager() {
                 </div>
 
                 {/* Mortgage amount */}
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-2">
                   <span className="text-xs" style={{ color: '#94A3B8' }}>
                     סכום משכנתא
                   </span>
                   <span className="text-xs font-mono" style={{ color: '#E2E8F0' }}>
                     {formatCurrency(p.mortgageAmount)}
+                  </span>
+                </div>
+
+                {/* LTV */}
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs flex items-center gap-1" style={{ color: '#94A3B8' }}>
+                    LTV (מימון/שווי)
+                    {p.ltv > p.maxLtv && <ShieldAlert size={12} style={{ color: '#EF4444' }} />}
+                  </span>
+                  <span
+                    className="text-xs font-mono font-bold px-2 py-0.5 rounded-full"
+                    style={{
+                      color: p.ltv > p.maxLtv ? '#EF4444' : p.ltv > 60 ? '#F59E0B' : '#10B981',
+                      backgroundColor: p.ltv > p.maxLtv ? '#EF44441A' : p.ltv > 60 ? '#F59E0B1A' : '#10B9811A',
+                    }}
+                  >
+                    {p.ltv.toFixed(0)}% / {p.maxLtv}%
                   </span>
                 </div>
 

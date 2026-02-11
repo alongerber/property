@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, X, Phone, MapPin, FileText, CheckCircle2, StickyNote, MessageSquare, Mail, HandCoins } from 'lucide-react';
+import { Plus, X, Phone, MapPin, FileText, CheckCircle2, StickyNote, MessageSquare, Mail, HandCoins, Scale } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useStore from '../../store/useStore';
 import { ACTIVITY_TYPES } from '../../utils/constants';
 
-const ICON_MAP = { Phone, MapPin, FileText, CheckCircle2, StickyNote, MessageSquare, Mail, HandCoins };
+const ICON_MAP = { Phone, MapPin, FileText, CheckCircle2, StickyNote, MessageSquare, Mail, HandCoins, Scale };
 
 export default function QuickAddFAB() {
   const [open, setOpen] = useState(false);

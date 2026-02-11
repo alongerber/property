@@ -20,6 +20,7 @@ import {
   MessageSquare,
   Mail,
   HandCoins,
+  Scale,
   Pencil,
   X,
   Filter,
@@ -31,7 +32,7 @@ import { relativeTime } from '../utils/calculations';
 import { ACTIVITY_TYPES } from '../utils/constants';
 
 // ─── Lucide icon name → component mapping (for ACTIVITY_TYPES.icon strings) ──
-const ICON_NAME_MAP = { Phone, MapPin, FileText, CheckCircle2, StickyNote, MessageSquare, Mail, HandCoins };
+const ICON_NAME_MAP = { Phone, MapPin, FileText, CheckCircle2, StickyNote, MessageSquare, Mail, HandCoins, Scale };
 
 // ─── Animation Variants ───────────────────────────────────────
 const containerVariants = {
@@ -57,6 +58,7 @@ const ACTIVITY_ICON_MAP = {
   whatsapp: MessageCircle,
   email: Mail,
   negotiation: HandCoins,
+  legal: Scale,
 };
 
 const ACTIVITY_COLOR_MAP = {

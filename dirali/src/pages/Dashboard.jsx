@@ -17,6 +17,7 @@ import {
   MessageCircle,
   Mail,
   HandCoins,
+  Scale,
   Sparkles,
 } from 'lucide-react';
 import useStore from '../store/useStore';
@@ -50,6 +51,7 @@ const ACTIVITY_ICON_MAP = {
   whatsapp: MessageCircle,
   email: Mail,
   negotiation: HandCoins,
+  legal: Scale,
 };
 
 // ─── Helpers ──────────────────────────────────────────────────

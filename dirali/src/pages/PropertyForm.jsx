@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Plus, X, Save, ArrowRight, Check } from 'lucide-react';
 import useStore from '../store/useStore';
@@ -139,7 +139,9 @@ const inputFocusClass =
 export default function PropertyForm() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const isEdit = !!id;
+  const prefill = location.state?.prefill || null;
 
   const existingProperty = useStore((s) =>
     id ? s.properties.find((p) => p.id === id) : null
@@ -149,34 +151,34 @@ export default function PropertyForm() {
 
   // ----- form state -----
   const [form, setForm] = useState({
-    name: '',
-    street: '',
-    city: 'נשר',
-    listing_url: '',
-    rooms: '',
-    sqm_built: '',
-    sqm_garden: '',
-    floor: '',
-    parking_spots: '',
-    has_storage: false,
-    has_elevator: false,
-    has_mamad: false,
-    has_accessible: false,
-    price: '',
-    condition: '',
-    renovation_estimate: '',
-    entry_date: '',
-    broker_name: '',
-    broker_phone: '',
-    broker_license: '',
-    gush: '',
-    helka: '',
-    tat_helka: '',
-    highlights: [],
-    risks: [],
-    features: [],
-    notes: '',
-    color: PROPERTY_COLORS[0],
+    name: prefill?.name || '',
+    street: prefill?.street || '',
+    city: prefill?.city || 'נשר',
+    listing_url: prefill?.listing_url || '',
+    rooms: prefill?.rooms ?? '',
+    sqm_built: prefill?.sqm_built ?? '',
+    sqm_garden: prefill?.sqm_garden ?? '',
+    floor: prefill?.floor || '',
+    parking_spots: prefill?.parking_spots ?? '',
+    has_storage: prefill?.has_storage || false,
+    has_elevator: prefill?.has_elevator || false,
+    has_mamad: prefill?.has_mamad || false,
+    has_accessible: prefill?.has_accessible || false,
+    price: prefill?.price ?? '',
+    condition: prefill?.condition || '',
+    renovation_estimate: prefill?.renovation_estimate ?? '',
+    entry_date: prefill?.entry_date || '',
+    broker_name: prefill?.broker_name || '',
+    broker_phone: prefill?.broker_phone || '',
+    broker_license: prefill?.broker_license || '',
+    gush: prefill?.gush || '',
+    helka: prefill?.helka || '',
+    tat_helka: prefill?.tat_helka || '',
+    highlights: prefill?.highlights || [],
+    risks: prefill?.risks || [],
+    features: prefill?.features || [],
+    notes: prefill?.notes || '',
+    color: prefill?.color || PROPERTY_COLORS[0],
   });
 
   // Populate form if editing

@@ -22,6 +22,7 @@ export default function MortgageCalc() {
   const setMortgageRate = useStore((s) => s.setMortgageRate);
   const netIncome = useStore((s) => s.netIncome);
   const setNetIncome = useStore((s) => s.setNetIncome);
+  const isFirstProperty = useStore((s) => s.isFirstProperty);
 
   const activeProps = useMemo(
     () => properties.filter((p) => p.status !== 'dropped'),
@@ -40,7 +41,7 @@ export default function MortgageCalc() {
   const breakdown = useMemo(() => {
     if (!selectedProp) return null;
     const price = selectedProp.price;
-    const tax = calcTax(price);
+    const tax = calcTax(price, isFirstProperty);
     const renovation = selectedProp.renovation_estimate || 0;
     const totalCost = price + tax + renovation;
     const mortgageAmount = Math.max(0, totalCost - equity);
@@ -63,7 +64,7 @@ export default function MortgageCalc() {
       totalPayments: Math.round(totalPayments),
       ratio,
     };
-  }, [selectedProp, equity, mortgageRate, mortgageYears, netIncome]);
+  }, [selectedProp, equity, mortgageRate, mortgageYears, netIncome, isFirstProperty]);
 
   // Amortization schedule
   const schedule = useMemo(() => {
@@ -83,7 +84,7 @@ export default function MortgageCalc() {
   // Multi-property bar chart data
   const multiPropData = useMemo(() => {
     return activeProps.map((p, i) => {
-      const tax = calcTax(p.price);
+      const tax = calcTax(p.price, isFirstProperty);
       const renovation = p.renovation_estimate || 0;
       const totalCost = p.price + tax + renovation;
       const mortgageAmount = Math.max(0, totalCost - equity);

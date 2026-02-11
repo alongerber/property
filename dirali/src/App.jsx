@@ -22,6 +22,7 @@ const AiAdvisors = lazy(() => import('./pages/AiAdvisors'));
 const Timeline = lazy(() => import('./pages/Timeline'));
 const Scenarios = lazy(() => import('./pages/Scenarios'));
 const PropertyImport = lazy(() => import('./pages/PropertyImport'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 function PageLoader() {
   return (
@@ -57,6 +58,7 @@ function App() {
                 <Route path="/ai" element={<AiAdvisors />} />
                 <Route path="/timeline" element={<Timeline />} />
                 <Route path="/scenarios" element={<Scenarios />} />
+                <Route path="/settings" element={<Settings />} />
               </Routes>
             </Suspense>
           </ErrorBoundary>

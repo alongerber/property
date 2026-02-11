@@ -2,19 +2,17 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
   Building2,
-  Wallet,
-  GitCompare,
-  CheckSquare,
   Bot,
+  CheckSquare,
+  Settings,
 } from 'lucide-react';
 
 const tabs = [
   { to: '/', label: 'דשבורד', icon: LayoutDashboard },
   { to: '/properties', label: 'נכסים', icon: Building2 },
-  { to: '/equity', label: 'הון עצמי', icon: Wallet },
-  { to: '/compare', label: 'השוואה', icon: GitCompare },
-  { to: '/tasks', label: 'משימות', icon: CheckSquare },
   { to: '/ai', label: 'AI', icon: Bot },
+  { to: '/tasks', label: 'משימות', icon: CheckSquare },
+  { to: '/settings', label: 'הגדרות', icon: Settings },
 ];
 
 export default function BottomNav() {

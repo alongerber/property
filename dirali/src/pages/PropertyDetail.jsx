@@ -28,6 +28,7 @@ import {
   MessageSquare,
   Mail,
   HandCoins,
+  Scale,
 } from 'lucide-react';
 import useStore from '../store/useStore';
 import { PIPELINE_STATUSES, ACTIVITY_TYPES } from '../utils/constants';
@@ -43,7 +44,7 @@ import {
 import StatusPill from '../components/property/StatusPill';
 import ConfirmDialog from '../components/shared/ConfirmDialog';
 
-const ICON_MAP = { Phone, MapPin, FileText, CheckCircle2, StickyNote, MessageSquare, Mail, HandCoins };
+const ICON_MAP = { Phone, MapPin, FileText, CheckCircle2, StickyNote, MessageSquare, Mail, HandCoins, Scale };
 
 // ---------------------------------------------------------------------------
 // Editable List component for Highlights / Risks
