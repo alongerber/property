@@ -1,21 +1,38 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Header from './components/layout/Header';
 import BottomNav from './components/layout/BottomNav';
 import MortgageBar from './components/layout/MortgageBar';
 import QuickAddFAB from './components/layout/QuickAddFAB';
+import ErrorBoundary from './components/shared/ErrorBoundary';
+
+// Eagerly loaded (always visible)
 import Dashboard from './pages/Dashboard';
-import Properties from './pages/Properties';
-import PropertyDetail from './pages/PropertyDetail';
-import PropertyForm from './pages/PropertyForm';
-import EquityManager from './pages/EquityManager';
-import Compare from './pages/Compare';
-import MortgageCalc from './pages/MortgageCalc';
-import Tasks from './pages/Tasks';
-import AiAdvisors from './pages/AiAdvisors';
-import Timeline from './pages/Timeline';
-import Scenarios from './pages/Scenarios';
-import PropertyImport from './pages/PropertyImport';
+
+// Lazy-loaded pages
+const Properties = lazy(() => import('./pages/Properties'));
+const PropertyDetail = lazy(() => import('./pages/PropertyDetail'));
+const PropertyForm = lazy(() => import('./pages/PropertyForm'));
+const EquityManager = lazy(() => import('./pages/EquityManager'));
+const Compare = lazy(() => import('./pages/Compare'));
+const MortgageCalc = lazy(() => import('./pages/MortgageCalc'));
+const Tasks = lazy(() => import('./pages/Tasks'));
+const AiAdvisors = lazy(() => import('./pages/AiAdvisors'));
+const Timeline = lazy(() => import('./pages/Timeline'));
+const Scenarios = lazy(() => import('./pages/Scenarios'));
+const PropertyImport = lazy(() => import('./pages/PropertyImport'));
+
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <div
+        className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+        style={{ borderColor: '#3B82F6', borderTopColor: 'transparent' }}
+      />
+    </div>
+  );
+}
 
 function App() {
   return (
@@ -24,21 +41,25 @@ function App() {
         <Header />
         <MortgageBar />
         <main className="flex-1 pb-24 pt-2">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/properties" element={<Properties />} />
-            <Route path="/properties/new" element={<PropertyForm />} />
-            <Route path="/properties/import" element={<PropertyImport />} />
-            <Route path="/properties/:id" element={<PropertyDetail />} />
-            <Route path="/properties/:id/edit" element={<PropertyForm />} />
-            <Route path="/equity" element={<EquityManager />} />
-            <Route path="/compare" element={<Compare />} />
-            <Route path="/mortgage" element={<MortgageCalc />} />
-            <Route path="/tasks" element={<Tasks />} />
-            <Route path="/ai" element={<AiAdvisors />} />
-            <Route path="/timeline" element={<Timeline />} />
-            <Route path="/scenarios" element={<Scenarios />} />
-          </Routes>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/properties" element={<Properties />} />
+                <Route path="/properties/new" element={<PropertyForm />} />
+                <Route path="/properties/import" element={<PropertyImport />} />
+                <Route path="/properties/:id" element={<PropertyDetail />} />
+                <Route path="/properties/:id/edit" element={<PropertyForm />} />
+                <Route path="/equity" element={<EquityManager />} />
+                <Route path="/compare" element={<Compare />} />
+                <Route path="/mortgage" element={<MortgageCalc />} />
+                <Route path="/tasks" element={<Tasks />} />
+                <Route path="/ai" element={<AiAdvisors />} />
+                <Route path="/timeline" element={<Timeline />} />
+                <Route path="/scenarios" element={<Scenarios />} />
+              </Routes>
+            </Suspense>
+          </ErrorBoundary>
         </main>
         <QuickAddFAB />
         <BottomNav />

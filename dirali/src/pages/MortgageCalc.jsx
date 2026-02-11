@@ -41,7 +41,7 @@ export default function MortgageCalc() {
     if (!selectedProp) return null;
     const price = selectedProp.price;
     const tax = calcTax(price);
-    const renovation = selectedProp.renovation_cost || 0;
+    const renovation = selectedProp.renovation_estimate || 0;
     const totalCost = price + tax + renovation;
     const mortgageAmount = Math.max(0, totalCost - equity);
     const monthly = mortgageAmount > 0
@@ -84,7 +84,7 @@ export default function MortgageCalc() {
   const multiPropData = useMemo(() => {
     return activeProps.map((p, i) => {
       const tax = calcTax(p.price);
-      const renovation = p.renovation_cost || 0;
+      const renovation = p.renovation_estimate || 0;
       const totalCost = p.price + tax + renovation;
       const mortgageAmount = Math.max(0, totalCost - equity);
       const monthly = mortgageAmount > 0

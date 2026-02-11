@@ -164,8 +164,17 @@ function LawyerInsights() {
   const properties = useStore((s) => s.properties);
   const activeProperties = properties.filter((p) => p.status !== 'dropped');
 
-  // Keywords that flag legal issues
-  const RISK_KEYWORDS = ['קליניקה', 'בנייה', 'חריגה', 'היתר', 'עיקול', 'משכון', 'הפקעה', 'זיקת הנאה'];
+  // Keywords that flag legal issues — with negation-aware matching
+  const RISK_KEYWORDS = ['קליניקה', 'חריגת בנייה', 'חריגה', 'ללא היתר', 'עיקול', 'משכון', 'הפקעה', 'זיקת הנאה'];
+  const NEGATION_PREFIXES = ['אין ', 'ללא ', 'בלי ', 'לא נמצא ', 'לא קיים '];
+
+  function isRealRisk(riskText, keyword) {
+    const lower = riskText;
+    const kwIdx = lower.indexOf(keyword);
+    if (kwIdx === -1) return false;
+    const prefix = lower.slice(Math.max(0, kwIdx - 15), kwIdx);
+    return !NEGATION_PREFIXES.some((neg) => prefix.endsWith(neg));
+  }
 
   const LEGAL_CHECKLIST = [
     'בדיקת נסח טאבו עדכני',
@@ -189,7 +198,7 @@ function LawyerInsights() {
           {activeProperties.map((prop) => {
             const risks = prop.risks || [];
             const flaggedRisks = risks.filter((r) =>
-              RISK_KEYWORDS.some((kw) => r.toLowerCase().includes(kw.toLowerCase()))
+              RISK_KEYWORDS.some((kw) => isRealRisk(r, kw))
             );
             const hasFlags = flaggedRisks.length > 0;
 

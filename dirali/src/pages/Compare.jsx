@@ -12,12 +12,12 @@ import SliderInput from '../components/shared/SliderInput';
 const SIMPLE_CRITERIA = [
   { key: 'price', label: 'מחיר', format: (v) => formatCurrency(v), lowerBetter: true },
   { key: 'rooms', label: 'חדרים', format: (v) => formatNumber(v) },
-  { key: 'built_area', label: 'שטח בנוי', format: (v) => `${formatNumber(v)} מ״ר` },
-  { key: 'garden_area', label: 'גינה', format: (v) => v ? `${formatNumber(v)} מ״ר` : 'אין' },
-  { key: 'parking', label: 'חניות', format: (v) => formatNumber(v || 0) },
-  { key: 'mamad', label: 'ממ״ד', format: (v) => v ? 'יש' : 'אין' },
+  { key: 'sqm_built', label: 'שטח בנוי', format: (v) => `${formatNumber(v)} מ״ר` },
+  { key: 'sqm_garden', label: 'גינה', format: (v) => v ? `${formatNumber(v)} מ״ר` : 'אין' },
+  { key: 'parking_spots', label: 'חניות', format: (v) => formatNumber(v || 0) },
+  { key: 'has_mamad', label: 'ממ״ד', format: (v) => v ? 'יש' : 'אין' },
   { key: 'condition', label: 'מצב', format: (v) => v || '—' },
-  { key: 'renovation_cost', label: 'שיפוצים נדרשים', format: (v) => v ? formatCurrency(v) : 'לא נדרש', lowerBetter: true },
+  { key: 'renovation_estimate', label: 'שיפוצים נדרשים', format: (v) => v ? formatCurrency(v) : 'לא נדרש', lowerBetter: true },
   { key: 'tax', label: 'מס רכישה', format: (v) => formatCurrency(v), lowerBetter: true, computed: true },
   { key: 'totalCost', label: 'עלות כוללת', format: (v) => formatCurrency(v), lowerBetter: true, computed: true },
 ];
@@ -25,7 +25,7 @@ const SIMPLE_CRITERIA = [
 function getPropertyValue(property, criterion) {
   if (criterion.key === 'tax') return calcTax(property.price);
   if (criterion.key === 'totalCost') {
-    return property.price + (property.renovation_cost || 0) + calcTax(property.price);
+    return property.price + (property.renovation_estimate || 0) + calcTax(property.price);
   }
   return property[criterion.key];
 }

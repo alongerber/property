@@ -5,7 +5,8 @@ import useStore from '../store/useStore';
 import { calcTax, calcMortgage, formatCurrency, getIncomeRatio, getIncomeRatioColor } from '../utils/calculations';
 import SliderInput from '../components/shared/SliderInput';
 
-const RATIO_THRESHOLD = 40;
+const BOI_RECOMMENDED = 33;  // Bank of Israel recommended max
+const BOI_MAX_ALLOWED = 40;  // Bank absolute ceiling
 
 export default function EquityManager() {
   const equitySources = useStore((s) => s.equitySources);
@@ -35,7 +36,7 @@ export default function EquityManager() {
   const impactData = useMemo(() => {
     return activeProperties.map((p) => {
       const tax = calcTax(p.price);
-      const renovation = p.renovation_cost || 0;
+      const renovation = p.renovation_estimate || 0;
       const totalCost = p.price + tax + renovation;
       const mortgageAmount = Math.max(0, totalCost - total);
       const monthly = mortgageAmount > 0
@@ -228,8 +229,9 @@ export default function EquityManager() {
         <div className="space-y-2">
           {impactData.map((p) => {
             const ratioColor = getIncomeRatioColor(p.ratio);
-            const barWidth = Math.min((p.ratio / RATIO_THRESHOLD) * 100, 100);
-            const isOverThreshold = p.ratio > RATIO_THRESHOLD;
+            const barWidth = Math.min((p.ratio / BOI_MAX_ALLOWED) * 100, 100);
+            const isOverRecommended = p.ratio > BOI_RECOMMENDED;
+            const isOverMax = p.ratio > BOI_MAX_ALLOWED;
 
             return (
               <motion.div
@@ -249,8 +251,11 @@ export default function EquityManager() {
                     >
                       {p.ratio.toFixed(1)}%
                     </span>
-                    {isOverThreshold && (
+                    {isOverMax && (
                       <AlertTriangle size={14} style={{ color: '#EF4444' }} />
+                    )}
+                    {isOverRecommended && !isOverMax && (
+                      <AlertTriangle size={14} style={{ color: '#F59E0B' }} />
                     )}
                   </div>
                 </div>
@@ -289,7 +294,16 @@ export default function EquityManager() {
                       transition={{ duration: 0.6, ease: 'easeOut' }}
                     />
                   </div>
-                  {/* 40% threshold marker */}
+                  {/* 33% recommended marker */}
+                  <div
+                    className="absolute top-0 h-2.5 w-px"
+                    style={{
+                      left: `${(BOI_RECOMMENDED / BOI_MAX_ALLOWED) * 100}%`,
+                      backgroundColor: '#F59E0B',
+                      opacity: 0.6,
+                    }}
+                  />
+                  {/* 40% max marker */}
                   <div
                     className="absolute top-0 h-2.5 w-px"
                     style={{
@@ -302,8 +316,11 @@ export default function EquityManager() {
                     <span className="text-xs" style={{ color: '#64748B' }}>
                       0%
                     </span>
-                    <span className="text-xs" style={{ color: '#64748B' }}>
-                      {RATIO_THRESHOLD}% תקרה
+                    <span className="text-xs" style={{ color: '#F59E0B' }}>
+                      {BOI_RECOMMENDED}% מומלץ
+                    </span>
+                    <span className="text-xs" style={{ color: '#EF4444' }}>
+                      {BOI_MAX_ALLOWED}% תקרה
                     </span>
                   </div>
                 </div>

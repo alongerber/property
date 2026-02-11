@@ -1,8 +1,26 @@
-export function calcTax(price) {
-  if (price <= 1978745) return 0;
+/**
+ * Israeli purchase tax (mas rechisha) 2026.
+ * @param {number} price - Property price in ILS
+ * @param {boolean} isFirstProperty - true = sole property, false = additional property (8%/10%)
+ */
+export function calcTax(price, isFirstProperty = true) {
+  if (!price || price <= 0) return 0;
+
+  if (isFirstProperty) {
+    // First / sole property brackets (2026)
+    let tax = 0;
+    if (price > 1978745) tax += Math.min(price, 2347040) - 1978745;
+    tax *= 0.035;
+    if (price > 2347040) tax += (Math.min(price, 6055070) - 2347040) * 0.05;
+    if (price > 6055070) tax += (Math.min(price, 20000000) - 6055070) * 0.08;
+    if (price > 20000000) tax += (price - 20000000) * 0.10;
+    return Math.round(tax);
+  }
+
+  // Additional property (investment / second home)
   let tax = 0;
-  if (price > 1978745) tax += Math.min(price - 1978745, 2347040 - 1978745) * 0.035;
-  if (price > 2347040) tax += (price - 2347040) * 0.05;
+  tax += Math.min(price, 6055070) * 0.08;
+  if (price > 6055070) tax += (price - 6055070) * 0.10;
   return Math.round(tax);
 }
 

@@ -107,7 +107,7 @@ export default function Scenarios() {
       const priceOverride = scenario.priceOverrides?.[p.id];
       const price = priceOverride !== undefined ? priceOverride : p.price;
       const tax = calcTax(price);
-      const renovation = p.renovation_cost || 0;
+      const renovation = p.renovation_estimate || 0;
       const totalCost = price + tax + renovation;
       const mortgageAmount = Math.max(0, totalCost - scenarioEquity);
       const monthly = mortgageAmount > 0

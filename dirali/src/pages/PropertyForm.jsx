@@ -169,6 +169,9 @@ export default function PropertyForm() {
     broker_name: '',
     broker_phone: '',
     broker_license: '',
+    gush: '',
+    helka: '',
+    tat_helka: '',
     highlights: [],
     risks: [],
     features: [],
@@ -200,6 +203,9 @@ export default function PropertyForm() {
         broker_name: existingProperty.broker_name || '',
         broker_phone: existingProperty.broker_phone || '',
         broker_license: existingProperty.broker_license || '',
+        gush: existingProperty.gush || '',
+        helka: existingProperty.helka || '',
+        tat_helka: existingProperty.tat_helka || '',
         highlights: existingProperty.highlights || [],
         risks: existingProperty.risks || [],
         features: existingProperty.features || [],
@@ -544,7 +550,45 @@ export default function PropertyForm() {
           </div>
         </Section>
 
-        {/* ===== 6. Evaluations ===== */}
+        {/* ===== 6. Legal / Tabu ===== */}
+        <Section title="זיהוי משפטי (טאבו)">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Field label="גוש">
+              <input
+                value={form.gush}
+                onChange={(e) => updateField('gush', e.target.value)}
+                placeholder="12345"
+                dir="ltr"
+                className={inputFocusClass}
+                style={inputStyle}
+              />
+            </Field>
+
+            <Field label="חלקה">
+              <input
+                value={form.helka}
+                onChange={(e) => updateField('helka', e.target.value)}
+                placeholder="67"
+                dir="ltr"
+                className={inputFocusClass}
+                style={inputStyle}
+              />
+            </Field>
+
+            <Field label="תת-חלקה">
+              <input
+                value={form.tat_helka}
+                onChange={(e) => updateField('tat_helka', e.target.value)}
+                placeholder="3"
+                dir="ltr"
+                className={inputFocusClass}
+                style={inputStyle}
+              />
+            </Field>
+          </div>
+        </Section>
+
+        {/* ===== 7. Evaluations ===== */}
         <Section title="הערכות">
           <div className="space-y-5">
             {/* Highlights */}
