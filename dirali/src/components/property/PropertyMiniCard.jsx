@@ -39,6 +39,26 @@ export default function PropertyMiniCard({ property }) {
   const ratio = hasPrice && netIncome > 0 ? getIncomeRatio(monthlyPayment, netIncome) : 0;
   const ratioColor = getIncomeRatioColor(ratio);
 
+  // Readiness score: how complete is the property data?
+  const readinessChecks = [
+    !!property.name,
+    hasPrice,
+    !!rooms,
+    !!sqm_built,
+    !!street,
+    !!property.floor,
+    !!(property.broker_name || property.broker_phone),
+    !!property.listing_url,
+    !!property.gush,
+    !!property.condition,
+    (property.highlights || []).length > 0,
+    (property.risks || []).length > 0,
+  ];
+  const readinessScore = Math.round(
+    (readinessChecks.filter(Boolean).length / readinessChecks.length) * 100
+  );
+  const readinessColor = readinessScore >= 80 ? '#10B981' : readinessScore >= 50 ? '#F59E0B' : '#EF4444';
+
   const statItems = [
     rooms != null && { icon: Home, value: rooms, label: 'חדרים' },
     sqm_built != null && { icon: Maximize, value: sqm_built, label: 'מ״ר' },
@@ -147,6 +167,22 @@ export default function PropertyMiniCard({ property }) {
           <StatusPill status={status} size="sm" />
         </div>
       )}
+
+      {/* Readiness score */}
+      <div className="mb-3">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs" style={{ color: '#64748B' }}>מוכנות</span>
+          <span className="text-xs font-mono font-bold" style={{ color: readinessColor }}>
+            {readinessScore}%
+          </span>
+        </div>
+        <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#334155' }}>
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${readinessScore}%`, backgroundColor: readinessColor }}
+          />
+        </div>
+      </div>
 
       {/* Monthly mortgage + income ratio — only when price exists */}
       {hasPrice && (

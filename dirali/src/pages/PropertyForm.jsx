@@ -217,13 +217,30 @@ export default function PropertyForm() {
     }
   }, [isEdit, existingProperty]);
 
+  const [errors, setErrors] = useState({});
+
   // ----- helpers -----
   const updateField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
+  };
+
+  const validate = () => {
+    const errs = {};
+    if (!form.name.trim()) errs.name = 'שם הנכס הוא שדה חובה';
+    if (form.price && Number(form.price) < 0) errs.price = 'מחיר לא יכול להיות שלילי';
+    if (form.renovation_estimate && Number(form.renovation_estimate) < 0)
+      errs.renovation_estimate = 'הערכת שיפוץ לא יכולה להיות שלילית';
+    return errs;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
 
     const data = {
       ...form,
@@ -281,6 +298,7 @@ export default function PropertyForm() {
             }
             className="p-2 rounded-lg cursor-pointer"
             style={{ color: '#94A3B8' }}
+            aria-label="חזרה"
           >
             <ArrowRight size={20} />
           </button>
@@ -297,15 +315,18 @@ export default function PropertyForm() {
         {/* ===== 1. Basic Details ===== */}
         <Section title="פרטים בסיסיים">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="שם הנכס" className="md:col-span-2">
+            <Field label="שם הנכס *" className="md:col-span-2">
               <input
                 value={form.name}
                 onChange={(e) => updateField('name', e.target.value)}
                 placeholder='לדוגמה: "דירת גן ברחוב הזית"'
                 required
                 className={inputFocusClass}
-                style={inputStyle}
+                style={{ ...inputStyle, borderColor: errors.name ? '#EF4444' : '#334155' }}
               />
+              {errors.name && (
+                <p className="text-xs mt-1" style={{ color: '#EF4444' }}>{errors.name}</p>
+              )}
             </Field>
 
             <Field label="רחוב">
@@ -473,8 +494,11 @@ export default function PropertyForm() {
                 step="1000"
                 placeholder="1,750,000"
                 className={inputFocusClass}
-                style={inputStyle}
+                style={{ ...inputStyle, borderColor: errors.price ? '#EF4444' : '#334155' }}
               />
+              {errors.price && (
+                <p className="text-xs mt-1" style={{ color: '#EF4444' }}>{errors.price}</p>
+              )}
             </Field>
 
             <Field label="מצב הדירה">

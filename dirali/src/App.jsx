@@ -6,6 +6,7 @@ import BottomNav from './components/layout/BottomNav';
 import MortgageBar from './components/layout/MortgageBar';
 import QuickAddFAB from './components/layout/QuickAddFAB';
 import ErrorBoundary from './components/shared/ErrorBoundary';
+import WelcomeModal from './components/shared/WelcomeModal';
 
 // Eagerly loaded (always visible)
 import Dashboard from './pages/Dashboard';
@@ -65,6 +66,7 @@ function App() {
         </main>
         <QuickAddFAB />
         <BottomNav />
+        <WelcomeModal />
         <Toaster
           position="top-center"
           toastOptions={{

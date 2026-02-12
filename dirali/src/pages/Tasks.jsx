@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus,
@@ -83,6 +84,20 @@ const PRIORITY_CONFIG = {
 // ───────────────────────────────────────────────────────────────
 export default function Tasks() {
   const [activeTab, setActiveTab] = useState('tasks');
+  const allTasks = useStore((s) => s.tasks);
+
+  useEffect(() => {
+    const overdue = allTasks.filter(
+      (t) => !t.is_done && t.due_date && new Date(t.due_date) < new Date()
+    );
+    if (overdue.length > 0) {
+      toast(`${overdue.length} משימות באיחור`, {
+        icon: '\u26A0\uFE0F',
+        duration: 3000,
+        id: 'overdue-toast',
+      });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <motion.div
@@ -374,6 +389,7 @@ function TasksView() {
                       onClick={() => toggleTask(task.id)}
                       className="shrink-0 cursor-pointer"
                       style={{ width: 20, height: 20 }}
+                      aria-label={task.is_done ? 'סמן כלא הושלם' : 'סמן כהושלם'}
                     >
                       {task.is_done ? (
                         <CheckCircle2 size={20} style={{ color: '#10B981' }} />
@@ -429,6 +445,7 @@ function TasksView() {
                           style={{ color: '#EF4444' }}
                           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#EF444418')}
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                          aria-label="מחק משימה"
                         >
                           <Trash2 size={14} />
                         </motion.button>

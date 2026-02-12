@@ -6,6 +6,7 @@ import {
   CheckSquare,
   Settings,
 } from 'lucide-react';
+import useStore from '../../store/useStore';
 
 const tabs = [
   { to: '/', label: 'דשבורד', icon: LayoutDashboard },
@@ -16,6 +17,11 @@ const tabs = [
 ];
 
 export default function BottomNav() {
+  const tasks = useStore((s) => s.tasks);
+  const overdueCount = tasks.filter(
+    (t) => !t.is_done && t.due_date && new Date(t.due_date) < new Date()
+  ).length;
+
   return (
     <nav
       className="fixed bottom-0 inset-x-0 z-50 flex items-center justify-around"
@@ -33,7 +39,8 @@ export default function BottomNav() {
           key={to}
           to={to}
           end={to === '/'}
-          className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1"
+          aria-label={label}
+          className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 relative"
           style={({ isActive }) => ({
             color: isActive ? '#3B82F6' : '#64748B',
             textDecoration: 'none',
@@ -41,7 +48,23 @@ export default function BottomNav() {
         >
           {({ isActive }) => (
             <>
-              <Icon size={isActive ? 22 : 20} strokeWidth={isActive ? 2.5 : 1.8} />
+              <div className="relative">
+                <Icon size={isActive ? 22 : 20} strokeWidth={isActive ? 2.5 : 1.8} />
+                {to === '/tasks' && overdueCount > 0 && (
+                  <span
+                    className="absolute -top-1.5 -right-2.5 flex items-center justify-center text-[9px] font-bold rounded-full"
+                    style={{
+                      width: 16,
+                      height: 16,
+                      backgroundColor: '#EF4444',
+                      color: '#fff',
+                      boxShadow: '0 0 6px rgba(239, 68, 68, 0.5)',
+                    }}
+                  >
+                    {overdueCount > 9 ? '9+' : overdueCount}
+                  </span>
+                )}
+              </div>
               <span
                 className="text-[10px] leading-tight font-medium"
                 style={{ color: isActive ? '#3B82F6' : '#64748B' }}

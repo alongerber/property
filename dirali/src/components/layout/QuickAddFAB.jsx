@@ -124,6 +124,7 @@ export default function QuickAddFAB() {
                 onClick={() => setOpen(false)}
                 className="p-1 rounded-lg transition-colors"
                 style={{ color: '#64748B' }}
+                aria-label="סגור"
               >
                 <X size={18} />
               </button>
@@ -244,6 +245,7 @@ export default function QuickAddFAB() {
       <motion.button
         onClick={() => setOpen((prev) => !prev)}
         whileTap={{ scale: 0.9 }}
+        aria-label="הוספה מהירה"
         className="fixed z-[55] flex items-center justify-center shadow-lg"
         style={{
           bottom: 72,

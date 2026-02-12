@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building2, ChevronDown, ChevronUp, Calculator, TrendingDown, Wallet } from 'lucide-react';
+import { Building2, ChevronDown, ChevronUp, Calculator, TrendingDown, Wallet, Layers } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer, ReferenceLine,
@@ -32,6 +32,16 @@ export default function MortgageCalc() {
   const [selectedId, setSelectedId] = useState(activeProps[0]?.id || '');
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [editingIncome, setEditingIncome] = useState(false);
+  const [mixMode, setMixMode] = useState(false);
+  const [tracks, setTracks] = useState([
+    { id: 'prime', label: 'פריים', rate: 6.0, pct: 33, color: '#3B82F6', desc: 'משתנה' },
+    { id: 'fixed_cpi', label: 'קבועה צמודה', rate: 3.5, pct: 34, color: '#10B981', desc: 'צמודת מדד' },
+    { id: 'fixed_non', label: 'קבועה לא צמודה', rate: 4.5, pct: 33, color: '#F59E0B', desc: 'ללא הצמדה' },
+  ]);
+
+  const updateTrack = (id, field, value) => {
+    setTracks((prev) => prev.map((t) => (t.id === id ? { ...t, [field]: value } : t)));
+  };
 
   const equity = totalEquity();
 
@@ -65,6 +75,46 @@ export default function MortgageCalc() {
       ratio,
     };
   }, [selectedProp, equity, mortgageRate, mortgageYears, netIncome, isFirstProperty]);
+
+  // Mix mode (tamhil) breakdown
+  const mixBreakdown = useMemo(() => {
+    if (!mixMode || !selectedProp) return null;
+    const price = selectedProp.price;
+    const tax = calcTax(price, isFirstProperty);
+    const renovation = selectedProp.renovation_estimate || 0;
+    const totalCost = price + tax + renovation;
+    const mortgageAmount = Math.max(0, totalCost - equity);
+    const totalPct = tracks.reduce((s, t) => s + t.pct, 0);
+    if (totalPct === 0) return null;
+
+    const trackDetails = tracks.map((track) => {
+      const trackAmount = mortgageAmount * (track.pct / totalPct);
+      const monthly = trackAmount > 0 ? calcMortgage(trackAmount, track.rate, mortgageYears) : 0;
+      const tp = monthly * mortgageYears * 12;
+      return {
+        ...track,
+        amount: Math.round(trackAmount),
+        monthly: Math.round(monthly),
+        totalPayments: Math.round(tp),
+        totalInterest: Math.round(tp - trackAmount),
+      };
+    });
+
+    const totalMonthly = trackDetails.reduce((s, t) => s + t.monthly, 0);
+    const totalInterest = trackDetails.reduce((s, t) => s + t.totalInterest, 0);
+    const totalPayments = trackDetails.reduce((s, t) => s + t.totalPayments, 0);
+    const ratio = netIncome > 0 ? getIncomeRatio(totalMonthly, netIncome) : 0;
+
+    return {
+      price, equity, tax, renovation, totalCost, mortgageAmount, trackDetails,
+      monthly: Math.round(totalMonthly),
+      totalInterest: Math.round(totalInterest),
+      totalPayments: Math.round(totalPayments),
+      ratio,
+    };
+  }, [mixMode, selectedProp, equity, tracks, mortgageYears, isFirstProperty, netIncome]);
+
+  const effectiveBreakdown = mixMode && mixBreakdown ? mixBreakdown : breakdown;
 
   // Amortization schedule
   const schedule = useMemo(() => {
@@ -101,17 +151,17 @@ export default function MortgageCalc() {
 
   const incomeThreshold = Math.round(netIncome * 0.33);
 
-  const breakdownRows = breakdown
+  const breakdownRows = effectiveBreakdown
     ? [
-        { label: 'מחיר הנכס', value: formatCurrency(breakdown.price), color: '#E2E8F0' },
-        { label: 'הון עצמי', value: formatCurrency(breakdown.equity), color: '#10B981' },
-        { label: 'מס רכישה', value: formatCurrency(breakdown.tax), color: '#F59E0B' },
-        { label: 'שיפוצים', value: formatCurrency(breakdown.renovation), color: '#F97316' },
-        { label: 'עלות כוללת', value: formatCurrency(breakdown.totalCost), color: '#E2E8F0', bold: true },
-        { label: 'סכום משכנתא', value: formatCurrency(breakdown.mortgageAmount), color: '#3B82F6', bold: true },
-        { label: 'החזר חודשי', value: formatCurrency(breakdown.monthly), color: getIncomeRatioColor(breakdown.ratio), bold: true },
-        { label: 'סה״כ ריבית', value: formatCurrency(breakdown.totalInterest), color: '#EF4444' },
-        { label: 'סה״כ עלות (כולל ריבית)', value: formatCurrency(breakdown.totalPayments + breakdown.tax + breakdown.renovation), color: '#E2E8F0' },
+        { label: 'מחיר הנכס', value: formatCurrency(effectiveBreakdown.price), color: '#E2E8F0' },
+        { label: 'הון עצמי', value: formatCurrency(effectiveBreakdown.equity), color: '#10B981' },
+        { label: 'מס רכישה', value: formatCurrency(effectiveBreakdown.tax), color: '#F59E0B' },
+        { label: 'שיפוצים', value: formatCurrency(effectiveBreakdown.renovation), color: '#F97316' },
+        { label: 'עלות כוללת', value: formatCurrency(effectiveBreakdown.totalCost), color: '#E2E8F0', bold: true },
+        { label: 'סכום משכנתא', value: formatCurrency(effectiveBreakdown.mortgageAmount), color: '#3B82F6', bold: true },
+        { label: 'החזר חודשי', value: formatCurrency(effectiveBreakdown.monthly), color: getIncomeRatioColor(effectiveBreakdown.ratio), bold: true },
+        { label: 'סה״כ ריבית', value: formatCurrency(effectiveBreakdown.totalInterest), color: '#EF4444' },
+        { label: 'סה״כ עלות (כולל ריבית)', value: formatCurrency(effectiveBreakdown.totalPayments + effectiveBreakdown.tax + effectiveBreakdown.renovation), color: '#E2E8F0' },
       ]
     : [];
 
@@ -141,16 +191,80 @@ export default function MortgageCalc() {
             unit="שנים"
             color="#3B82F6"
           />
-          <SliderInput
-            label="ריבית שנתית"
-            value={mortgageRate}
-            onChange={setMortgageRate}
-            min={3.0}
-            max={6.5}
-            step={0.1}
-            unit="%"
-            color="#F59E0B"
-          />
+          {/* Mode toggle: single rate vs tamhil */}
+          <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: '#0F172A' }}>
+            <button
+              onClick={() => setMixMode(false)}
+              className="flex-1 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer"
+              style={{ backgroundColor: !mixMode ? '#3B82F6' : 'transparent', color: !mixMode ? '#fff' : '#94A3B8' }}
+            >
+              ריבית אחידה
+            </button>
+            <button
+              onClick={() => setMixMode(true)}
+              className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer"
+              style={{ backgroundColor: mixMode ? '#3B82F6' : 'transparent', color: mixMode ? '#fff' : '#94A3B8' }}
+            >
+              <Layers size={12} />
+              תמהיל
+            </button>
+          </div>
+
+          {!mixMode ? (
+            <SliderInput
+              label="ריבית שנתית"
+              value={mortgageRate}
+              onChange={setMortgageRate}
+              min={3.0}
+              max={6.5}
+              step={0.1}
+              unit="%"
+              color="#F59E0B"
+            />
+          ) : (
+            <div className="space-y-2">
+              {tracks.map((track) => (
+                <div key={track.id} className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: track.color }} />
+                  <span className="text-xs font-medium min-w-[80px]" style={{ color: track.color }}>{track.label}</span>
+                  <input
+                    type="number"
+                    value={track.rate}
+                    onChange={(e) => updateTrack(track.id, 'rate', parseFloat(e.target.value) || 0)}
+                    step={0.1}
+                    min={0}
+                    max={10}
+                    className="w-16 text-xs text-center rounded-md py-1 font-mono"
+                    style={{ backgroundColor: '#0F172A', border: '1px solid #334155', color: '#E2E8F0', outline: 'none' }}
+                    aria-label={`ריבית ${track.label}`}
+                  />
+                  <span className="text-[10px]" style={{ color: '#64748B' }}>%ריבית</span>
+                  <input
+                    type="number"
+                    value={track.pct}
+                    onChange={(e) => updateTrack(track.id, 'pct', parseInt(e.target.value) || 0)}
+                    step={1}
+                    min={0}
+                    max={100}
+                    className="w-14 text-xs text-center rounded-md py-1 font-mono"
+                    style={{ backgroundColor: '#0F172A', border: '1px solid #334155', color: '#E2E8F0', outline: 'none' }}
+                    aria-label={`חלק ${track.label}`}
+                  />
+                  <span className="text-[10px]" style={{ color: '#64748B' }}>%חלק</span>
+                </div>
+              ))}
+              <div className="flex h-2 rounded-full overflow-hidden">
+                {tracks.map((track) => (
+                  <div key={track.id} style={{ width: `${track.pct}%`, backgroundColor: track.color, transition: 'width 0.3s' }} />
+                ))}
+              </div>
+              {tracks.reduce((s, t) => s + t.pct, 0) !== 100 && (
+                <p className="text-xs text-center" style={{ color: '#EF4444' }}>
+                  סה״כ {tracks.reduce((s, t) => s + t.pct, 0)}% — יש להתאים ל-100%
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -187,7 +301,7 @@ export default function MortgageCalc() {
       )}
 
       {/* Full breakdown */}
-      {breakdown && (
+      {effectiveBreakdown && (
         <div className="px-4 mb-4">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -232,11 +346,11 @@ export default function MortgageCalc() {
                 <span
                   className="text-sm font-mono font-bold px-3 py-1 rounded-full"
                   style={{
-                    color: getIncomeRatioColor(breakdown.ratio),
-                    backgroundColor: `${getIncomeRatioColor(breakdown.ratio)}15`,
+                    color: getIncomeRatioColor(effectiveBreakdown.ratio),
+                    backgroundColor: `${getIncomeRatioColor(effectiveBreakdown.ratio)}15`,
                   }}
                 >
-                  {breakdown.ratio.toFixed(1)}%
+                  {effectiveBreakdown.ratio.toFixed(1)}%
                 </span>
               </div>
             </div>
@@ -244,8 +358,52 @@ export default function MortgageCalc() {
         </div>
       )}
 
+      {/* Per-track breakdown (mix mode) */}
+      {mixMode && mixBreakdown && (
+        <div className="px-4 mb-4">
+          <div
+            className="rounded-2xl overflow-hidden"
+            style={{ backgroundColor: '#1E293B', border: '1px solid #334155' }}
+          >
+            <div className="px-4 py-3" style={{ borderBottom: '1px solid #334155' }}>
+              <div className="flex items-center gap-2">
+                <Layers size={16} style={{ color: '#8B5CF6' }} />
+                <h3 className="text-sm font-bold" style={{ color: '#E2E8F0' }}>
+                  פירוט לפי מסלול
+                </h3>
+              </div>
+            </div>
+            {mixBreakdown.trackDetails.map((track, idx) => (
+              <div
+                key={track.id}
+                className="px-4 py-3 flex items-center justify-between"
+                style={{ borderBottom: idx < mixBreakdown.trackDetails.length - 1 ? '1px solid #0F172A33' : 'none' }}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: track.color }} />
+                  <div>
+                    <span className="text-sm font-medium" style={{ color: track.color }}>{track.label}</span>
+                    <span className="text-xs mr-2" style={{ color: '#64748B' }}>
+                      {track.pct}% | {track.rate}%
+                    </span>
+                  </div>
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-mono font-semibold" style={{ color: '#E2E8F0' }}>
+                    {formatCurrency(track.monthly)}/חודש
+                  </p>
+                  <p className="text-xs font-mono" style={{ color: '#64748B' }}>
+                    סכום: {formatCurrency(track.amount)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Amortization schedule */}
-      {schedule.length > 0 && (
+      {!mixMode && schedule.length > 0 && (
         <div className="px-4 mb-4">
           <motion.div
             className="rounded-2xl overflow-hidden"
@@ -335,7 +493,7 @@ export default function MortgageCalc() {
       )}
 
       {/* Line chart: Principal vs Interest over time */}
-      {chartData.length > 0 && (
+      {!mixMode && chartData.length > 0 && (
         <div className="px-4 mb-4">
           <div
             className="rounded-2xl p-4"
@@ -401,7 +559,7 @@ export default function MortgageCalc() {
       )}
 
       {/* Multi-property comparison bar chart */}
-      {multiPropData.length > 1 && (
+      {!mixMode && multiPropData.length > 1 && (
         <div className="px-4 mb-4">
           <div
             className="rounded-2xl p-4"
